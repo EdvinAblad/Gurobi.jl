@@ -29,7 +29,7 @@ end
 @testset "Linear tests" begin
     @testset "Default Solver"  begin
         solver = Gurobi.Optimizer(OutputFlag=0)
-        MOIT.contlineartest(solver, MOIT.TestConfig(), [
+        MOIT.contlineartest(solver, MOIT.TestConfig(basis = true), [
             # This requires interval constraint.
             "linear10",
             # This requires an infeasiblity certificate for a variable bound.
@@ -39,7 +39,7 @@ end
     @testset "linear10" begin
         MOIT.linear10test(
             MOIB.SplitInterval{Float64}(Gurobi.Optimizer(OutputFlag=0)),
-            MOIT.TestConfig()
+            MOIT.TestConfig(basis = true)
         )
     end
     @testset "No certificate" begin

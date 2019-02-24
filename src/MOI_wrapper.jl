@@ -543,6 +543,36 @@ function LQOI.get_dual_status(model::Optimizer)
     return MOI.NO_SOLUTION
 end
 
+const varstatmap = Dict(
+    -3 => MOI.SUPER_BASIC,
+    -2 => MOI.NONBASIC_AT_UPPER,
+    -1 => MOI.NONBASIC_AT_LOWER,
+     0 => MOI.BASIC
+)
+const constatmap = Dict(
+     0 => MOI.BASIC,
+    -1 => MOI.NONBASIC)
+
+function MOI.get(model::Optimizer, ::MOI.VariableBasisStatus, i::LQOI.VarInd)
+    col = model.variable_mapping[i]
+    lower = LQOI.get_variable_lowerbound(model, col)
+    upper = LQOI.get_variable_upperbound(model, col)
+    cval = get_intattrelement(model.inner, "VBasis", col)
+    stat = varstatmap[cval]
+    # For NONBASIC single sided variable, only return NONBASIC status for simplicity
+    if xor(lower >= -1e20, upper <= 1e20) &&
+        (stat == MOI.NONBASIC_AT_LOWER || stat == MOI.NONBASIC_AT_UPPER)
+        return MOI.NONBASIC
+    end
+    return stat
+end
+
+function MOI.get(model::Optimizer, ::MOI.ConstraintBasisStatus, i::LQOI.LCI{T}) where T <: Union{LQOI.LE, LQOI.GE, LQOI.EQ}
+    row = model[i]
+    rval = get_intattrelement(model.inner, "CBasis", row)
+    return constatmap[rval]
+end
+
 function LQOI.get_variable_primal_solution!(model::Optimizer, dest)
     get_dblattrarray!(dest, model.inner, "X", 1)
     return
