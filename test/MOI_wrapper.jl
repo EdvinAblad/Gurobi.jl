@@ -32,12 +32,17 @@ end
         MOIT.contlineartest(solver, MOIT.TestConfig(basis = true), [
             # This requires interval constraint.
             "linear10",
+            "linear10b",
             # This requires an infeasiblity certificate for a variable bound.
             "linear12"
         ])
     end
     @testset "linear10" begin
         MOIT.linear10test(
+            MOIB.SplitInterval{Float64}(Gurobi.Optimizer(OutputFlag=0)),
+            MOIT.TestConfig(basis = true)
+        )
+        MOIT.linear10btest(
             MOIB.SplitInterval{Float64}(Gurobi.Optimizer(OutputFlag=0)),
             MOIT.TestConfig(basis = true)
         )
